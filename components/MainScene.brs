@@ -61,6 +61,11 @@ sub init()
     m.stateBytes = 0
     m.backupBytes = 0
     m.storageTrimmed = false
+    m.lastSavedRaw = ""
+    m.backupDirty = false
+    m.lastBackupSec = 0
+    m.saveFailed = false
+    m.backupSkipped = false
     m.menuDefs = [
         { label: "Today", key: "hub" },
         { label: "Calendar", key: "calendar" },
@@ -259,71 +264,135 @@ sub loadState()
     ensureCbState()
 end sub
 
+' ---------- persistence ----------
+' The Roku registry gives a channel roughly 32 KB in total, shared by the main
+' state and the safety copy, so both are kept well inside that budget.
+function storageLimits() as Object
+    return {
+        calendarTrim: 14000,
+        weatherTrim: 16000,
+        tickerTrim: 17000,
+        historyTrim: 18000,
+        backupMax: 8000,
+        backupHeadroom: 1024,
+        backupEverySec: 30
+    }
+end function
+
+' Saves are cheap and immediate for the main copy: one JSON pass in the common
+' case (no deep copies). The safety copy is rebuilt at most every
+' backupEverySec seconds (see flushBackupIfDue). Note: BrightScript string
+' equality is case-insensitive, so do not use = to detect unchanged saves.
 sub saveState()
     m.state.schemaVersion = 78
-    storedState = storageSafeState()
-    newRaw = FormatJSON(storedState)
-    m.sec.Write("state", newRaw)
-    recoveryState = ParseJSON(FormatJSON(storedState))
-    if recoveryState <> invalid then
-        if recoveryState.calendar <> invalid then recoveryState.calendar.cache = {}
-        if recoveryState.weather <> invalid then recoveryState.weather.cache = {}
-        if recoveryState.tickers <> invalid then recoveryState.tickers.cache = {}
-        recoveryDay = nowInfo().dateKey
-        recoveryChecks = {}
-        recoveryReminders = {}
-        recoveryZones = {}
-        if recoveryState.checks <> invalid and recoveryState.checks[recoveryDay] <> invalid then recoveryChecks[recoveryDay] = recoveryState.checks[recoveryDay]
-        if recoveryState.reminded <> invalid and recoveryState.reminded[recoveryDay] <> invalid then recoveryReminders[recoveryDay] = recoveryState.reminded[recoveryDay]
-        if recoveryState.zones <> invalid and recoveryState.zones[recoveryDay] <> invalid then recoveryZones[recoveryDay] = recoveryState.zones[recoveryDay]
-        recoveryState.checks = recoveryChecks
-        recoveryState.reminded = recoveryReminders
-        recoveryState.zones = recoveryZones
+    raw = serializeStateForStorage()
+    if writeStateRaw(raw) then
+        m.lastSavedRaw = raw
+        m.stateBytes = raw.len()
+        m.backupDirty = true
+        if m.saveFailed then
+            m.saveFailed = false
+            showToast("Saving works again")
+        end if
+        flushBackupIfDue()
+    else
+        ' Nothing was saved. Tell the family once, and keep retrying on later saves.
+        if not m.saveFailed then
+            m.saveFailed = true
+            showToast("Could not save - Roku storage is full. Ask an admin to check System Health.")
+        end if
     end if
-    recoveryRaw = FormatJSON(recoveryState)
-    if recoveryRaw.len() <= 12000 then
-        m.sec.Write("state_backup", recoveryRaw)
-        m.backupBytes = recoveryRaw.len()
-    end if
-    m.sec.Flush()
-    m.stateBytes = newRaw.len()
 end sub
 
-function storageSafeState() as Object
+' Writes the main state and checks that it really landed. If the registry is
+' full, the safety copy is the first thing sacrificed so the primary survives.
+function writeStateRaw(raw as String) as Boolean
+    ok = m.sec.Write("state", raw)
+    if not ok then
+        m.sec.Delete("state_backup")
+        m.backupBytes = 0
+        ok = m.sec.Write("state", raw)
+    end if
+    if ok then ok = m.sec.Flush()
+    return ok
+end function
+
+' Rewrites the safety copy when one is pending and 30 s have passed since the
+' last one (the main copy is always current, so a short delay here is safe).
+sub flushBackupIfDue()
+    if not m.backupDirty then return
+    lim = storageLimits()
+    nowSec = CreateObject("roDateTime").AsSeconds()
+    if nowSec - m.lastBackupSec < lim.backupEverySec then return
+    m.backupDirty = false
+    m.lastBackupSec = nowSec
+    recoveryState = ParseJSON(m.lastSavedRaw)
+    if recoveryState = invalid then return
+    if recoveryState.calendar <> invalid then recoveryState.calendar.cache = {}
+    if recoveryState.weather <> invalid then recoveryState.weather.cache = {}
+    if recoveryState.tickers <> invalid then recoveryState.tickers.cache = {}
+    recoveryDay = nowInfo().dateKey
+    recoveryChecks = {}
+    recoveryReminders = {}
+    recoveryZones = {}
+    if recoveryState.checks <> invalid and recoveryState.checks[recoveryDay] <> invalid then recoveryChecks[recoveryDay] = recoveryState.checks[recoveryDay]
+    if recoveryState.reminded <> invalid and recoveryState.reminded[recoveryDay] <> invalid then recoveryReminders[recoveryDay] = recoveryState.reminded[recoveryDay]
+    if recoveryState.zones <> invalid and recoveryState.zones[recoveryDay] <> invalid then recoveryZones[recoveryDay] = recoveryState.zones[recoveryDay]
+    recoveryState.checks = recoveryChecks
+    recoveryState.reminded = recoveryReminders
+    recoveryState.zones = recoveryZones
+    recoveryRaw = FormatJSON(recoveryState)
+    m.backupSkipped = true
+    if recoveryRaw.len() > lim.backupMax then return
+    ' Keep headroom so the main state can still grow after the copy is stored.
+    if recoveryRaw.len() - m.backupBytes + lim.backupHeadroom > registryFreeBytes() then return
+    if m.sec.Write("state_backup", recoveryRaw) and m.sec.Flush() then
+        m.backupBytes = recoveryRaw.len()
+        m.backupSkipped = false
+    end if
+end sub
+
+' Returns the JSON text to store. Replaceable caches (calendar, weather,
+' tickers) are dropped from the stored copy first when it gets large;
+' purchases, points and avatars never are. Dropped caches also reset their
+' lastSync so the next launch refetches them instead of waiting out the interval.
+function serializeStateForStorage() as String
+    lim = storageLimits()
     m.storageTrimmed = false
-    copy = ParseJSON(FormatJSON(m.state))
-    if copy = invalid then return m.state
-    raw = FormatJSON(copy)
-    if raw.len() > 24000 and copy.calendar <> invalid then
-        ' Calendar events can always be fetched again. Purchases, points and avatars cannot.
+    raw = FormatJSON(m.state)
+    if raw.len() <= lim.calendarTrim then return raw
+    copy = ParseJSON(raw)
+    if copy = invalid then return raw
+    m.storageTrimmed = true
+    if copy.calendar <> invalid then
         copy.calendar.cache = {}
-        m.storageTrimmed = true
+        copy.calendar.lastSync = 0
     end if
     raw = FormatJSON(copy)
-    if raw.len() > 26000 and copy.weather <> invalid then
+    if raw.len() <= lim.weatherTrim then return raw
+    if copy.weather <> invalid then
         copy.weather.cache = {}
-        m.storageTrimmed = true
+        copy.weather.lastSync = 0
     end if
     raw = FormatJSON(copy)
-    if raw.len() > 27000 and copy.tickers <> invalid then
+    if raw.len() <= lim.tickerTrim then return raw
+    if copy.tickers <> invalid then
         copy.tickers.cache = {}
-        m.storageTrimmed = true
+        copy.tickers.lastSync = 0
     end if
     raw = FormatJSON(copy)
-    if raw.len() > 28000 then
-        todayKey = nowInfo().dateKey
-        compactChecks = {}
-        compactReminders = {}
-        compactZones = {}
-        if copy.checks <> invalid and copy.checks[todayKey] <> invalid then compactChecks[todayKey] = copy.checks[todayKey]
-        if copy.reminded <> invalid and copy.reminded[todayKey] <> invalid then compactReminders[todayKey] = copy.reminded[todayKey]
-        if copy.zones <> invalid and copy.zones[todayKey] <> invalid then compactZones[todayKey] = copy.zones[todayKey]
-        copy.checks = compactChecks
-        copy.reminded = compactReminders
-        copy.zones = compactZones
-        m.storageTrimmed = true
-    end if
-    return copy
+    if raw.len() <= lim.historyTrim then return raw
+    todayKey = nowInfo().dateKey
+    compactChecks = {}
+    compactReminders = {}
+    compactZones = {}
+    if copy.checks <> invalid and copy.checks[todayKey] <> invalid then compactChecks[todayKey] = copy.checks[todayKey]
+    if copy.reminded <> invalid and copy.reminded[todayKey] <> invalid then compactReminders[todayKey] = copy.reminded[todayKey]
+    if copy.zones <> invalid and copy.zones[todayKey] <> invalid then compactZones[todayKey] = copy.zones[todayKey]
+    copy.checks = compactChecks
+    copy.reminded = compactReminders
+    copy.zones = compactZones
+    return FormatJSON(copy)
 end function
 
 function registryFreeBytes() as Integer
@@ -392,7 +461,28 @@ function formatHubClock() as String
     if hour >= 12 then suffix = "PM"
     displayHour = hour mod 12
     if displayHour = 0 then displayHour = 12
-    return displayHour.toStr() + ":" + pad2(dt.GetMinutes()) + ":" + pad2(dt.GetSeconds()) + " " + suffix + " ET"
+    return displayHour.toStr() + ":" + pad2(dt.GetMinutes()) + ":" + pad2(dt.GetSeconds()) + " " + suffix + localZoneSuffix()
+end function
+
+' Short zone tag (" ET") taken from the Roku's own time zone setting, cached
+' because the clock redraws every second. Unknown zones show no tag at all
+' rather than a wrong one.
+function localZoneSuffix() as String
+    if m.zoneSuffix = invalid then
+        m.zoneSuffix = ""
+        tz = CreateObject("roDeviceInfo").GetTimeZone()
+        if tz = "US/Eastern" or tz = "America/New_York" then m.zoneSuffix = " ET"
+        if tz = "US/Central" or tz = "America/Chicago" then m.zoneSuffix = " CT"
+        if tz = "US/Mountain" or tz = "America/Denver" then m.zoneSuffix = " MT"
+        if tz = "US/Pacific" or tz = "America/Los_Angeles" then m.zoneSuffix = " PT"
+    end if
+    return m.zoneSuffix
+end function
+
+' "v76.3 build 55", read from the manifest so it can never go stale.
+function appVersionLabel() as String
+    info = CreateObject("roAppInfo")
+    return "v" + info.GetValue("major_version") + "." + info.GetValue("minor_version") + " build " + info.GetValue("build_version").toInt().toStr()
 end function
 
 function fmtTime(sec as Integer) as String
@@ -1417,6 +1507,7 @@ sub onTick()
         m.toastT = m.toastT - 1
         if m.toastT = 0 then m.toast.visible = false
     end if
+    if m.backupDirty then flushBackupIfDue()
     if m.admin then
         dtN = CreateObject("roDateTime")
         if dtN.AsSeconds() - m.lastKeySec > 300 then
@@ -1514,6 +1605,7 @@ end sub
 ' ---------- admin and PIN ----------
 
 sub showToast(msg as String)
+    if m.toastLabel = invalid then return
     m.toastLabel.text = msg
     m.toast.visible = true
     m.toastT = 3
@@ -2086,16 +2178,22 @@ sub buildDiagnostics()
     recoveryText = "Primary family data loaded normally"
     if m.recoveredState then recoveryText = "Safety backup was used during this launch"
     trimText = "Nothing removed from the saved copy"
+    trimColor = m.C.text
     if m.storageTrimmed then trimText = "Replaceable calendar/weather cache was omitted"
+    if m.backupSkipped then trimText = trimText + "  ·  safety copy skipped (low space)"
+    if m.saveFailed then
+        trimText = "LAST SAVE FAILED - Roku storage is full"
+        trimColor = "0xFF7777FF"
+    end if
     weatherState = m.weatherStatus
     if weatherState = invalid or weatherState = "" then weatherState = "READY"
 
     rows = [
-        { label: "APP BUILD", value: "v75.2.1r  ·  schema " + m.state.schemaVersion.toStr(), color: m.C.blue },
+        { label: "APP BUILD", value: appVersionLabel() + "  ·  schema " + m.state.schemaVersion.toStr(), color: m.C.blue },
         { label: "FAMILY DATA", value: m.stateBytes.toStr() + " bytes  ·  safety copy " + m.backupBytes.toStr() + " bytes", color: m.C.text },
         { label: "ROKU STORAGE", value: storageState + "  ·  " + freeBytes.toStr() + " bytes available", color: storageColor },
         { label: "RECOVERY", value: recoveryText, color: m.C.text },
-        { label: "STORAGE GUARD", value: trimText, color: m.C.text },
+        { label: "STORAGE GUARD", value: trimText, color: trimColor },
         { label: "CALENDAR", value: calState + "  ·  " + eventsN.toStr() + " saved events", color: m.C.text },
         { label: "CALENDAR SYNC", value: calendarSyncLabel(), color: m.C.text },
         { label: "WEATHER", value: weatherState + "  ·  ZIP 33417", color: m.C.text },
