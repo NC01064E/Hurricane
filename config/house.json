@@ -1,0 +1,147 @@
+{
+  "version": 1,
+
+  "rotations": {
+    "zones": {
+      "every": "week",
+      "startsOn": "thursday",
+      "turns": [
+        { "kitchen": "max", "living": "anthony", "dining": "emily" },
+        { "kitchen": "emily", "living": "max", "dining": "anthony" },
+        { "kitchen": "anthony", "living": "emily", "dining": "max" }
+      ]
+    },
+    "crew": {
+      "every": "day",
+      "turns": [
+        { "food": "emily", "wipe": "max", "sweep": "anthony" },
+        { "food": "anthony", "wipe": "emily", "sweep": "max" },
+        { "food": "max", "wipe": "anthony", "sweep": "emily" }
+      ]
+    },
+    "curb": {
+      "every": "day",
+      "turns": [
+        { "trash": "emily", "recycle": "max" },
+        { "trash": "anthony", "recycle": "emily" },
+        { "trash": "max", "recycle": "anthony" }
+      ]
+    },
+    "dishes": {
+      "every": "day",
+      "turns": [
+        { "dishwasher": "emily" },
+        { "dishwasher": "max" },
+        { "dishwasher": "anthony" }
+      ]
+    }
+  },
+
+  "today": {
+    "morning": {
+      "title": "MORNING — BEFORE SCHOOL",
+      "start": 6,
+      "rows": [
+        { "id": "dishwasher", "text": "Empty the dishwasher", "cat": "misc", "rotation": "dishes", "slot": "dishwasher" },
+        { "id": "laundryStart", "text": "Start today's laundry load", "cat": "laundry", "owner": "nick" },
+        { "id": "beds", "text": "Beds made", "cat": "misc", "owner": "everyone" },
+        { "id": "rooms", "text": "Rooms reset", "cat": "misc", "owner": "everyone" }
+      ]
+    },
+    "afterSchool": {
+      "title": "AFTER SCHOOL",
+      "start": 14,
+      "rows": [
+        { "id": "shoes", "text": "Shoes on shelf, bags on hooks", "cat": "misc", "owner": "everyone" },
+        { "id": "laundryFold", "text": "Move laundry, fold when done", "cat": "laundry", "owner": "patricia" }
+      ]
+    },
+    "evening": {
+      "title": "EVENING - THE RESET",
+      "start": 17,
+      "rows": [
+        { "id": "zoneKitchen", "text": "Kitchen zone: 3 jobs", "cat": "dinner", "rotation": "zones", "slot": "kitchen" },
+        { "id": "zoneLiving", "text": "Living Room zone: 3 jobs", "cat": "dinner", "rotation": "zones", "slot": "living" },
+        { "id": "zoneDining", "text": "Dining Room zone: 3 jobs", "cat": "dinner", "rotation": "zones", "slot": "dining" },
+        { "id": "crewFood", "text": "Crew: Put Away Food", "cat": "dinner", "rotation": "crew", "slot": "food" },
+        { "id": "crewWipe", "text": "Crew: Wipe table + counters", "cat": "dinner", "rotation": "crew", "slot": "wipe" },
+        { "id": "crewSweep", "text": "Crew: Sweep / Swiffer", "cat": "dinner", "rotation": "crew", "slot": "sweep" },
+        { "id": "trash", "text": "Trash to the curb", "cat": "trash", "rotation": "curb", "slot": "trash" },
+        { "id": "recycle", "text": "Recycling to the curb", "cat": "trash", "rotation": "curb", "slot": "recycle" }
+      ]
+    },
+    "saturday": {
+      "title": "SATURDAY — DEEP CLEAN",
+      "start": 14,
+      "rows": [
+        { "id": "deepclean", "text": "Deep Clean — twelve zones", "cat": "zones", "owner": "crew" }
+      ]
+    }
+  },
+
+  "laundryNote": "LAUNDRY — one load a day, start to finish: Nick starts it · Trish moves it and folds · a missed load goes first tomorrow",
+
+  "zoneNames": {
+    "kitchen": "Kitchen",
+    "living": "Living Room",
+    "dining": "Dining Room"
+  },
+
+  "zoneJobs": [
+    { "zone": "kitchen", "lines": [
+      "1 · Wipe down the fridge, microwave, dishwasher, and oven",
+      "2 · Load or unload the dishwasher — and take the kitchen trash out if it is full",
+      "3 · Sweep the kitchen floor"
+    ] },
+    { "zone": "living", "lines": [
+      "1 · Tidy: blankets folded, coffee table clear",
+      "2 · Entryway check: shoes, backpacks, boxes",
+      "3 · Sweep the living room floor"
+    ] },
+    { "zone": "dining", "lines": [
+      "1 · Chairs in + placemats straight — or wipe the table when there are none",
+      "2 · Clear the table bare except the flowers",
+      "3 · Sweep the dining floor"
+    ] }
+  ],
+
+  "chart": {
+    "subtitle": "Zones rotate every Monday. Three jobs each. Missed chores roll to the next reset, never a punishment cleanup.",
+    "everyDay": "Clear your plate · shoes on the shelf · laundry in the hamper · 5-minute tidy before bed",
+    "weekendTitle": "THE WEEKEND",
+    "weekend": "Saturday morning is Deep Clean: the twelve zones, one at a time, 20 minutes each, on the Reset page. Sunday is rest, plus ten minutes to empty the family inbox basket by the front door.",
+    "noteTitle": "START WITH THE BASKET",
+    "note": "Everything with no home lands in the family inbox basket by the front door. If you do not know where something goes, it goes in the basket, not on a counter."
+  },
+
+  "crewJobs": [
+    { "id": "crewFood", "slot": "food", "title": "PUT AWAY FOOD", "desc": "Leftovers into containers, containers into the fridge. Nothing lives on the counter overnight." },
+    { "id": "crewWipe", "slot": "wipe", "title": "WIPE IT DOWN", "desc": "Table, stove, and countertops wiped. The kitchen you leave is the kitchen you get tomorrow." },
+    { "id": "crewSweep", "slot": "sweep", "title": "SWEEP / SWIFFER", "desc": "Dining room and kitchen floors, swept or Swiffered. Chairs back where they belong." }
+  ],
+
+  "rhythm": [
+    { "day": "MONDAY", "job": "Laundry catch-up: one extra load", "owner": "parents" },
+    { "day": "TUESDAY", "job": "Bathroom quick wipe (10 minutes)", "owner": "parents" },
+    { "day": "WEDNESDAY", "job": "Sweep the entryway and the laundry hallway", "owner": "parents" },
+    { "day": "THURSDAY", "job": "Fridge and pantry check: toss expired, do one shelf", "owner": "parents" },
+    { "day": "FRIDAY", "job": "Fresh sheets on the beds", "owner": "parents" },
+    { "day": "SATURDAY", "job": "20-minute family reset, a little deeper (Deep Clean)", "owner": "crew" },
+    { "day": "SUNDAY", "job": "Rest. Empty the family inbox basket (10 minutes)", "owner": "parents" }
+  ],
+
+  "resetZones": [
+    { "name": "1 · Dining table", "done": "Bare wood except the flowers. Everything else has a home or goes in the family inbox basket." },
+    { "name": "2 · Dining Room Organize", "done": "Sideboard and shelves straight. Chairs in place. Nothing stored on the table or under it." },
+    { "name": "3 · Kitchen bar counter", "done": "Clear except the coffee maker. Cups back in the cabinet, keep 6 out." },
+    { "name": "4 · Sink + dishwasher", "done": "Sink empty. Dishwasher loaded and running. Drying rack clear." },
+    { "name": "5 · Entryway", "done": "Boxes broken down and out. One pair of shoes per person. Backpacks on hooks. Floor clear." },
+    { "name": "6 · Living room", "done": "Coffee table: remotes and one book only. Blankets folded on the couch. Piano top clear." },
+    { "name": "7 · Laundry zone", "done": "One load in the machine. Sorter bags not overflowing. No laundry on the floor." },
+    { "name": "8 · Utility Room", "done": "Machine tops clear. Supplies in the cabinet, doors shut. Brooms and dustpan in their corner. Floor swept, walkway clear." },
+    { "name": "9 · Bedroom", "done": "Bed made. Floor clear. Dresser top clear except the lamp. Shoes put away." },
+    { "name": "10 · Linen closet", "done": "Linens only, folded. One shelf per kind: towels, sheets, blankets. Clothes out." },
+    { "name": "11 · Closet floor", "done": "You can see the floor. Clothes hanging or in drawers. One donate bag lives here." },
+    { "name": "12 · Bathroom", "done": "Sink and counter wiped, mirror spotless, trash out. Towels hanging straight, floor clear, spare roll in sight." }
+  ]
+}

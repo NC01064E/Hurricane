@@ -88,6 +88,7 @@ sub init()
     }
     m.timerLabels = {}
     loadState()
+    loadHouseConfig()
     m.screenSaverGuard = m.top.findNode("screenSaverGuard")
     if m.screenSaverGuard <> invalid then m.screenSaverGuard.disableScreenSaver = true
     setupCalendar()
@@ -115,6 +116,7 @@ sub init()
     m.top.appendChild(m.toast)
     showScreen("hub")
     if m.recoveredState then showToast("Recovered your family data from the safety backup")
+    if m.houseConfigError <> "" then showToast("The chore schedule file has a problem - see Admin > System Health")
     m.top.setFocus(true)
 end sub
 
@@ -641,32 +643,8 @@ function todayRowIsPriority(startHour as Integer) as Boolean
     return false
 end function
 
-function zoneOwner(zone as String, weekIdx as Integer) as String
-    table = [
-        { kitchen: "max", living: "anthony", dining: "emily" },
-        { kitchen: "emily", living: "max", dining: "anthony" },
-        { kitchen: "anthony", living: "emily", dining: "max" }
-    ]
-    return table[weekIdx][zone]
-end function
 
-function crewOwner(job as String, nightIdx as Integer) as String
-    table = [
-        { food: "emily", wipe: "max", sweep: "anthony" },
-        { food: "anthony", wipe: "emily", sweep: "max" },
-        { food: "max", wipe: "anthony", sweep: "emily" }
-    ]
-    return table[nightIdx][job]
-end function
 
-function curbOwner(job as String, nightIdx as Integer) as String
-    table = [
-        { trash: "emily", recycle: "max" },
-        { trash: "anthony", recycle: "emily" },
-        { trash: "max", recycle: "anthony" }
-    ]
-    return table[nightIdx][job]
-end function
 
 ' ---------- audio ----------
 
@@ -2188,6 +2166,12 @@ sub buildDiagnostics()
     weatherState = m.weatherStatus
     if weatherState = invalid or weatherState = "" then weatherState = "READY"
 
+    schedText = "config/house.json  ·  " + houseChoreCount().toStr() + " Today chores  ·  " + houseResetZoneCount().toStr() + " reset zones"
+    schedColor = m.C.green
+    if m.houseConfigError <> "" then
+        schedText = "PROBLEM IN config/house.json - details below"
+        schedColor = "0xFF7777FF"
+    end if
     rows = [
         { label: "APP BUILD", value: appVersionLabel() + "  ·  schema " + m.state.schemaVersion.toStr(), color: m.C.blue },
         { label: "FAMILY DATA", value: m.stateBytes.toStr() + " bytes  ·  safety copy " + m.backupBytes.toStr() + " bytes", color: m.C.text },
@@ -2198,16 +2182,21 @@ sub buildDiagnostics()
         { label: "CALENDAR SYNC", value: calendarSyncLabel(), color: m.C.text },
         { label: "WEATHER", value: weatherState + "  ·  ZIP 33417", color: m.C.text },
         { label: "WEATHER SYNC", value: weatherSyncLabel(), color: m.C.text },
+        { label: "CHORE SCHEDULE", value: schedText, color: schedColor },
         { label: "AMBIENT MODE", value: "ON  ·  starts after 5 quiet minutes", color: m.C.green },
         { label: "ROKU SCREENSAVER", value: "SUPPRESSED WHILE FAMILY HUB IS OPEN", color: m.C.green }
     ]
     for i = 0 to rows.count() - 1
-        y = 202 + i * 68
-        mkRect(root, 56, y, 1808, 56, m.C.panel)
-        mkLabel(root, rows[i].label, 84, y + 16, 20, m.C.dim)
-        mkLabelW(root, rows[i].value, 520, y + 14, 1300, 23, rows[i].color, "right")
+        y = 202 + i * 62
+        mkRect(root, 56, y, 1808, 54, m.C.panel)
+        mkLabel(root, rows[i].label, 84, y + 15, 20, m.C.dim)
+        mkLabelW(root, rows[i].value, 520, y + 13, 1300, 23, rows[i].color, "right")
     end for
-    mkLabelW(root, "Protection order: forecast and calendar cache first; family points, purchases, owned items and avatar settings are preserved.", 56, 982, 1808, 22, m.C.gold, "center")
+    if m.houseConfigError <> "" then
+        mkLabelW(root, "Chore schedule: " + m.houseConfigError + ". The app is running with an empty schedule until the file is fixed.", 56, 1012, 1808, 22, "0xFF7777FF", "center")
+    else
+        mkLabelW(root, "Protection order: forecast and calendar cache first; family points, purchases, owned items and avatar settings are preserved.", 56, 1012, 1808, 22, m.C.gold, "center")
+    end if
 end sub
 
 sub buildPinPick()
@@ -2508,35 +2497,11 @@ sub drawHubRow(root as Object, row as Object, checks as Object, reminded as Obje
 end sub
 
 function todayChores(ni as Object) as Object
-    dishOwner = m.kids[ni.days mod 3]
-    wk = ni.weekIdx
-    nt = ni.nightIdx
-    blocks = [
-        { title: "MORNING — BEFORE SCHOOL", rows: [
-            { id: "dishwasher", text: "Empty the dishwasher", owner: dishOwner, cat: "misc", start: 6, checkable: true },
-            { id: "laundryStart", text: "Start today's laundry load", owner: "nick", cat: "laundry", start: 6, checkable: true },
-            { id: "beds", text: "Beds made", owner: "everyone", cat: "misc", start: 6, checkable: true },
-            { id: "rooms", text: "Rooms reset", owner: "everyone", cat: "misc", start: 6, checkable: true }
-        ]},
-        { title: "AFTER SCHOOL", rows: [
-            { id: "shoes", text: "Shoes on shelf, bags on hooks", owner: "everyone", cat: "misc", start: 14, checkable: true },
-            { id: "laundryFold", text: "Move laundry, fold when done", owner: "patricia", cat: "laundry", start: 14, checkable: true }
-        ]},
-        { title: "EVENING - THE RESET", rows: [
-            { id: "zoneKitchen", text: "Kitchen zone: 3 jobs", owner: zoneOwner("kitchen", wk), cat: "dinner", start: 17, checkable: true },
-            { id: "zoneLiving", text: "Living Room zone: 3 jobs", owner: zoneOwner("living", wk), cat: "dinner", start: 17, checkable: true },
-            { id: "zoneDining", text: "Dining Room zone: 3 jobs", owner: zoneOwner("dining", wk), cat: "dinner", start: 17, checkable: true },
-            { id: "crewFood", text: "Crew: Put Away Food", owner: crewOwner("food", nt), cat: "dinner", start: 17, checkable: true },
-            { id: "crewWipe", text: "Crew: Wipe table + counters", owner: crewOwner("wipe", nt), cat: "dinner", start: 17, checkable: true },
-            { id: "crewSweep", text: "Crew: Sweep / Swiffer", owner: crewOwner("sweep", nt), cat: "dinner", start: 17, checkable: true },
-            { id: "trash", text: "Trash to the curb", owner: curbOwner("trash", nt), cat: "trash", start: 17, checkable: true },
-            { id: "recycle", text: "Recycling to the curb", owner: curbOwner("recycle", nt), cat: "trash", start: 17, checkable: true }
-        ]}
-    ]
-    if ni.isSaturday then
-        blocks.push({ title: "SATURDAY — DEEP CLEAN", rows: [
-            { id: "deepclean", text: "Deep Clean — twelve zones", owner: "crew", cat: "zones", start: 14, checkable: true }
-        ]})
+    ' Chores, owners and rotations come from config/house.json (HouseConfig.brs).
+    t = m.house.today
+    blocks = [houseTodayBlock(t.morning, ni.days), houseTodayBlock(t.afterSchool, ni.days), houseTodayBlock(t.evening, ni.days)]
+    if ni.isSaturday and t.saturday <> invalid then
+        if t.saturday.rows.count() > 0 then blocks.push(houseTodayBlock(t.saturday, ni.days))
     end if
     for each b in blocks
         for each r in b.rows
@@ -2853,7 +2818,7 @@ sub buildHub()
     drawNovemberBottomScene(root)
     drawDecemberBottomScene(root)
     mkRect(root, 56, 1036, 1808, 2, todaySurface.line)
-    mkLabelW(root, "LAUNDRY — one load a day, start to finish: Nick starts it · Trish moves it and folds · a missed load goes first tomorrow", 56, 1046, 1808, 24, todayTheme.a, "center")
+    mkLabelW(root, m.house.laundryNote, 56, 1046, 1808, 24, todayTheme.a, "center")
     drawHubTickers(root)
 end sub
 
@@ -2873,12 +2838,12 @@ sub buildHubSaturday(blocks as Object, checks as Object, reminded as Object)
         drawHubRow(root, blocks[1].rows[r], checks, reminded, 1, r, 690, y, 572, 50, 23)
         y = y + 54
     end for
-    mkLabelW(root, "LAUNDRY — one load a day, start to finish: Nick starts it · Trish moves it and folds · a missed load goes first tomorrow", 690, 752, 572, 19, saturdayTheme.a, "left")
+    mkLabelW(root, m.house.laundryNote, 690, 752, 572, 19, saturdayTheme.a, "left")
     mkLabel(root, blocks[3].title, 1300, 592, 26, saturdayTheme.b)
     drawHubRow(root, blocks[3].rows[0], checks, reminded, 2, 0, 1300, 630, 564, 50, 23)
-    mkLabel(root, "Twelve zones · 20:00 a zone", 1300, 700, 23, saturdayTheme.a)
+    mkLabel(root, houseCountWord(houseResetZoneCount(), true) + " zones · 20:00 a zone", 1300, 700, 23, saturdayTheme.a)
     mkLabel(root, "Run them on the Reset page", 1300, 736, 23, m.C.dim)
-    mkLabel(root, "All twelve = Deep Clean Crew", 1300, 772, 23, saturdayTheme.b)
+    mkLabel(root, "All " + houseCountWord(houseResetZoneCount(), false) + " = Deep Clean Crew", 1300, 772, 23, saturdayTheme.b)
     ' band 2: Evening across the full width, two sub-columns
     mkLabel(root, blocks[2].title, 56, 854, 26, saturdayTheme.b)
     ev = blocks[2].rows
@@ -3062,7 +3027,7 @@ sub buildGame()
     mkLabel(root, "No-ask finishes: " + houseCountTotal("noask").toStr() + " / 15", 84, cy + 108, 26, m.C.text)
     mkLabel(root, "Reset checks at dinner: " + houseCountTotal("dinner").toStr() + " / 20", 84, cy + 150, 26, m.C.text)
     mkLabel(root, "SATURDAY BOSS", 708, cy + 18, 28, m.C.yellow)
-    mkLabelW(root, "Deep Clean morning: all twelve zones, double points, level-ups count twice. Zones cleared so far: " + m.state.houseZones.toStr(), 708, cy + 66, 536, 26, m.C.text, "left")
+    mkLabelW(root, "Deep Clean morning: all " + houseCountWord(houseResetZoneCount(), false) + " zones, double points, level-ups count twice. Zones cleared so far: " + m.state.houseZones.toStr(), 708, cy + 66, 536, 26, m.C.text, "left")
     mkLabel(root, "FRIDAY REWARDS", 1332, cy + 18, 28, m.C.yellow)
     mkLabelW(root, "The week's leader picks: dessert, the weekend movie, Saturday breakfast, game-night first pick, or +30 min Friday. Everyone over 25: the reward is a family pick.", 1332, cy + 66, 536, 26, m.C.text, "left")
     litem = addItem(root, "action", "levels", 0, 0, 56, 1032, 1808, 40, m.C.panel)
@@ -3073,22 +3038,6 @@ end sub
 
 ' ---------- reset ----------
 
-function zonesData() as Object
-    return [
-        { name: "1 · Dining table", done: "Bare wood except the flowers. Everything else has a home or goes in the family inbox basket." },
-        { name: "2 · Dining Room Organize", done: "Sideboard and shelves straight. Chairs in place. Nothing stored on the table or under it." },
-        { name: "3 · Kitchen bar counter", done: "Clear except the coffee maker. Cups back in the cabinet, keep 6 out." },
-        { name: "4 · Sink + dishwasher", done: "Sink empty. Dishwasher loaded and running. Drying rack clear." },
-        { name: "5 · Entryway", done: "Boxes broken down and out. One pair of shoes per person. Backpacks on hooks. Floor clear." },
-        { name: "6 · Living room", done: "Coffee table: remotes and one book only. Blankets folded on the couch. Piano top clear." },
-        { name: "7 · Laundry zone", done: "One load in the machine. Sorter bags not overflowing. No laundry on the floor." },
-        { name: "8 · Utility Room", done: "Machine tops clear. Supplies in the cabinet, doors shut. Brooms and dustpan in their corner. Floor swept, walkway clear." },
-        { name: "9 · Bedroom", done: "Bed made. Floor clear. Dresser top clear except the lamp. Shoes put away." },
-        { name: "10 · Linen closet", done: "Linens only, folded. One shelf per kind: towels, sheets, blankets. Clothes out." },
-        { name: "11 · Closet floor", done: "You can see the floor. Clothes hanging or in drawers. One donate bag lives here." },
-        { name: "12 · Bathroom", done: "Sink and counter wiped, mirror spotless, trash out. Towels hanging straight, floor clear, spare roll in sight." }
-    ]
-end function
 
 function todayZones() as Object
     ni = nowInfo()
@@ -3218,8 +3167,8 @@ sub buildReset()
     for each k in z
         doneCount = doneCount + 1
     end for
-    mkLabel(root, "THE RESET — TWELVE ZONES", 56, 84, 44, m.C.text)
-    mkLabelW(root, doneCount.toStr() + " of 12 zones done today", 1250, 100, 614, 28, m.C.dim, "right")
+    mkLabel(root, "THE RESET — " + UCase(houseCountWord(houseResetZoneCount(), false)) + " ZONES", 56, 84, 44, m.C.text)
+    mkLabelW(root, doneCount.toStr() + " of " + houseResetZoneCount().toStr() + " zones done today", 1250, 100, 614, 28, m.C.dim, "right")
     tcards = [
         { kind: "zone", title: "ZONE TIMER · 20:00 PER ZONE", x: 56 },
         { kind: "family", title: "FAMILY RESET · 10:00 AFTER DINNER", x: 974 }
@@ -3236,7 +3185,7 @@ sub buildReset()
         m.timerStates[tc.kind] = st
     end for
     refreshTimerStates()
-    zd = zonesData()
+    zd = m.house.resetZones
     colX = [56, 664, 1272]
     for idx = 0 to zd.count() - 1
         c = idx mod 3
@@ -3283,51 +3232,58 @@ end sub
 sub buildChores()
     root = m.screenRoot
     ni = nowInfo()
+    chart = m.house.chart
     mkLabel(root, "THE CHORE CHART — EVERYONE OWNS A ZONE", 56, 84, 42, m.C.text)
-    mkLabel(root, "Zones rotate every Monday. Three jobs each. Missed chores roll to the next reset, never a punishment cleanup.", 56, 140, 26, m.C.dim)
+    mkLabel(root, chart.subtitle, 56, 140, 26, m.C.dim)
     mkRect(root, 56, 196, 880, 452, m.C.panel)
-    mkLabel(root, "THE 3-WEEK ROTATION", 84, 214, 28, m.C.yellow)
-    emZ = ["Dining Room", "Kitchen", "Living Room"]
-    mxZ = ["Kitchen", "Living Room", "Dining Room"]
-    anZ = ["Living Room", "Dining Room", "Kitchen"]
-    heads = ["WEEK", "EMILY", "MAX", "ANTHONY"]
+    nTurns = houseRotationCount("zones")
+    rotTitle = "THE ROTATION"
+    if nTurns > 0 then rotTitle = "THE " + nTurns.toStr() + "-WEEK ROTATION"
+    mkLabel(root, rotTitle, 84, 214, 28, m.C.yellow)
+    people = houseRotationPeople("zones")
+    heads = ["WEEK"]
+    for each k in people
+        heads.push(UCase(personName(k)))
+    end for
     colW = [150, 235, 235, 235]
     x = 84
-    for i = 0 to 3
+    for i = 0 to heads.count() - 1
         mkLabel(root, heads[i], x, 262, 24, m.C.dim)
         x = x + colW[i]
     end for
-    for w = 0 to 2
+    nowTurn = houseRotationIndex("zones", ni.days)
+    for w = 0 to nTurns - 1
         y = 306 + w * 64
-        if w = ni.weekIdx then mkRect(root, 76, y - 6, 840, 54, "0x1D2A55FF")
+        if w = nowTurn then mkRect(root, 76, y - 6, 840, 54, "0x1D2A55FF")
         wk = "Week " + (w + 1).toStr()
-        if w = ni.weekIdx then wk = wk + " · now"
+        if w = nowTurn then wk = wk + " · now"
         mkLabel(root, wk, 84, y, 26, m.C.text)
-        mkLabel(root, emZ[w], 234, y, 26, m.C.text)
-        mkLabel(root, mxZ[w], 469, y, 26, m.C.text)
-        mkLabel(root, anZ[w], 704, y, 26, m.C.text)
+        for ci = 0 to people.count() - 1
+            slot = houseRotationSlotFor("zones", w, people[ci])
+            zoneLabel = "—"
+            if slot <> "" then zoneLabel = houseZoneName(slot)
+            mkLabel(root, zoneLabel, 234 + ci * 235, y, 26, m.C.text)
+        end for
     end for
-    mkLabel(root, "EVERY DAY, EVERYONE:", 84, 522, 26, m.C.yellow)
-    mkLabel(root, "Clear your plate · shoes on the shelf · laundry in the hamper · 5-minute tidy before bed", 84, 560, 25, m.C.text)
-    jobs = [
-        { zone: "KITCHEN", lines: ["1 · Wipe down the fridge, microwave, dishwasher, and oven", "2 · Load or unload the dishwasher — and take the kitchen trash out if it is full", "3 · Sweep the kitchen floor"] },
-        { zone: "LIVING ROOM", lines: ["1 · Tidy: blankets folded, coffee table clear", "2 · Entryway check: shoes, backpacks, boxes", "3 · Sweep the living room floor"] },
-        { zone: "DINING ROOM", lines: ["1 · Chairs in + placemats straight — or wipe the table when there are none", "2 · Clear the table bare except the flowers", "3 · Sweep the dining floor"] }
-    ]
-    for i = 0 to 2
+    if chart.everyDay <> "" then
+        mkLabel(root, "EVERY DAY, EVERYONE:", 84, 522, 26, m.C.yellow)
+        mkLabel(root, chart.everyDay, 84, 560, 25, m.C.text)
+    end if
+    jobs = m.house.zoneJobs
+    for i = 0 to jobs.count() - 1
         y = 196 + i * 162
         mkRect(root, 968, y, 896, 146, m.C.panel)
-        mkLabel(root, jobs[i].zone, 996, y + 14, 28, m.C.blue)
-        for li = 0 to 2
+        mkLabel(root, UCase(houseZoneName(jobs[i].zone)), 996, y + 14, 28, m.C.blue)
+        for li = 0 to jobs[i].lines.count() - 1
             mkLabel(root, jobs[i].lines[li], 996, y + 56 + li * 30, 24, m.C.text)
         end for
     end for
     mkRect(root, 56, 680, 880, 320, m.C.panel)
-    mkLabel(root, "THE WEEKEND", 84, 698, 28, m.C.yellow)
-    mkLabelW(root, "Saturday morning is Deep Clean: the twelve zones, one at a time, 20 minutes each, on the Reset page. Sunday is rest, plus ten minutes to empty the family inbox basket by the front door.", 84, 744, 824, 27, m.C.text, "left")
+    mkLabel(root, chart.weekendTitle, 84, 698, 28, m.C.yellow)
+    mkLabelW(root, chart.weekend, 84, 744, 824, 27, m.C.text, "left")
     mkRect(root, 968, 680, 896, 320, m.C.panel)
-    mkLabel(root, "START WITH THE BASKET", 996, 698, 28, m.C.yellow)
-    mkLabelW(root, "Everything with no home lands in the family inbox basket by the front door. If you do not know where something goes, it goes in the basket, not on a counter.", 996, 744, 840, 27, m.C.text, "left")
+    mkLabel(root, chart.noteTitle, 996, 698, 28, m.C.yellow)
+    mkLabelW(root, chart.note, 996, 744, 840, 27, m.C.text, "left")
 end sub
 
 ' ---------- crew ----------
@@ -3339,15 +3295,11 @@ sub buildCrew()
     reminded = todayReminded()
     mkLabel(root, "AFTER DINNER CREW — TONIGHT", 56, 84, 44, m.C.text)
     mkLabel(root, "Three jobs, three kids, every night. The jobs move each night, so nobody gets stuck with the same one.", 56, 140, 26, m.C.dim)
-    jobs = [
-        { id: "crewFood", key: "food", title: "PUT AWAY FOOD", desc: "Leftovers into containers, containers into the fridge. Nothing lives on the counter overnight." },
-        { id: "crewWipe", key: "wipe", title: "WIPE IT DOWN", desc: "Table, stove, and countertops wiped. The kitchen you leave is the kitchen you get tomorrow." },
-        { id: "crewSweep", key: "sweep", title: "SWEEP / SWIFFER", desc: "Dining room and kitchen floors, swept or Swiffered. Chairs back where they belong." }
-    ]
+    jobs = m.house.crewJobs
     colX = [56, 664, 1272]
-    for i = 0 to 2
+    for i = 0 to jobs.count() - 1
         j = jobs[i]
-        owner = crewOwner(j.key, ni.nightIdx)
+        owner = houseRotationOwnerToday("crew", j.slot, ni.days)
         baseOwner = owner
         if m.state.reassign.doesExist(j.id) then owner = m.state.reassign[j.id]
         done = checks.doesExist(j.id)
@@ -3375,24 +3327,29 @@ sub buildCrew()
         end if
     end for
     mkLabel(root, "HOW THE JOBS MOVE", 56, 656, 28, m.C.yellow)
-    heads = ["", "PUT AWAY FOOD", "WIPE IT DOWN", "SWEEP / SWIFFER"]
+    heads = [""]
+    for each j in jobs
+        heads.push(j.title)
+    end for
     colW = [220, 380, 380, 380]
     x = 56
-    for i = 0 to 3
+    for i = 0 to heads.count() - 1
         mkLabel(root, heads[i], x, 700, 24, m.C.dim)
         x = x + colW[i]
     end for
-    for n = 0 to 2
+    tonight = houseRotationIndex("crew", ni.days)
+    for n = 0 to houseRotationCount("crew") - 1
         y = 744 + n * 58
-        if n = ni.nightIdx then mkRect(root, 48, y - 6, 1420, 50, "0x1D2A55FF")
+        if n = tonight then mkRect(root, 48, y - 6, 1420, 50, "0x1D2A55FF")
         nl = "Night " + (n + 1).toStr()
-        if n = ni.nightIdx then nl = nl + " · tonight"
+        if n = tonight then nl = nl + " · tonight"
         mkLabel(root, nl, 56, y, 26, m.C.text)
-        mkLabel(root, personName(crewOwner("food", n)), 276, y, 26, m.C.text)
-        mkLabel(root, personName(crewOwner("wipe", n)), 656, y, 26, m.C.text)
-        mkLabel(root, personName(crewOwner("sweep", n)), 1036, y, 26, m.C.text)
+        for i = 0 to jobs.count() - 1
+            mkLabel(root, personName(houseRotationOwner("crew", jobs[i].slot, n)), 276 + i * 380, y, 26, m.C.text)
+        end for
     end for
-    mkLabel(root, "Trash and recycling rotate nightly among Emily, Max, and Anthony — see Today for tonight's assignments.", 56, 950, 26, m.C.blue)
+    curbPeople = houseRotationPeople("curb")
+    if curbPeople.count() > 0 then mkLabel(root, "Trash and recycling rotate nightly among " + joinPersonNames(curbPeople) + " — see Today for tonight's assignments.", 56, 950, 26, m.C.blue)
 end sub
 
 ' ---------- rhythm ----------
@@ -3402,19 +3359,11 @@ sub buildRhythm()
     ni = nowInfo()
     mkLabel(root, "WEEKLY RHYTHM", 56, 84, 44, m.C.text)
     mkLabel(root, "The grown-up jobs: one small thing a day keeps the weekend free. Tap OK on today's row when it is done.", 56, 140, 26, m.C.dim)
-    rows = [
-        { day: "MONDAY", job: "Laundry catch-up: one extra load", owner: "parents" },
-        { day: "TUESDAY", job: "Bathroom quick wipe (10 minutes)", owner: "parents" },
-        { day: "WEDNESDAY", job: "Sweep the entryway and the laundry hallway", owner: "parents" },
-        { day: "THURSDAY", job: "Fridge and pantry check: toss expired, do one shelf", owner: "parents" },
-        { day: "FRIDAY", job: "Fresh sheets on the beds", owner: "parents" },
-        { day: "SATURDAY", job: "20-minute family reset, a little deeper (Deep Clean)", owner: "crew" },
-        { day: "SUNDAY", job: "Rest. Empty the family inbox basket (10 minutes)", owner: "parents" }
-    ]
+    rows = m.house.rhythm
     todayIdx = (ni.dow + 6) mod 7
     checks = todayChecks()
     y = 196
-    for i = 0 to 6
+    for i = 0 to rows.count() - 1
         r = rows[i]
         isToday = (i = todayIdx)
         bgc = m.C.panel

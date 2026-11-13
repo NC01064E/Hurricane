@@ -8,6 +8,7 @@
     <script type="text/brightscript" uri="pkg:/components/Music.brs" />
     <script type="text/brightscript" uri="pkg:/components/Seasons.brs" />
     <script type="text/brightscript" uri="pkg:/components/Tickers.brs" />
+    <script type="text/brightscript" uri="pkg:/components/HouseConfig.brs" />
     <children>
         <Rectangle id="bg" width="1920" height="1080" color="0x0B1020FF" />
         <Group id="screenRoot" />
