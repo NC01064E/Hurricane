@@ -1427,7 +1427,8 @@ sub onTick()
         if m.ambientAvatarGroup <> invalid then
             bob = 0
             if m.ambientPulse = 1 or m.ambientPulse = 2 then bob = -3
-            m.ambientScrollX = m.ambientScrollX - 5.0
+            ' Parade speed in pixels per second (was 5.0; 25% faster).
+            m.ambientScrollX = m.ambientScrollX - 6.25
             if m.ambientScrollX <= -ambientParadeSpan() then m.ambientScrollX = 0
             m.ambientAvatarGroup.translation = [m.ambientScrollX, bob]
         end if

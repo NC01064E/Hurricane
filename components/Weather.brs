@@ -91,16 +91,28 @@ end function
 function weatherVisualKind() as String
     data = weatherData()
     if data.current = invalid or data.current.forecast = invalid then return "none"
-    txt = LCase(data.current.forecast)
-    if Instr(0, txt, "thunder") >= 0 or Instr(0, txt, "storm") >= 0 then return "thunder"
-    if Instr(0, txt, "rain") >= 0 or Instr(0, txt, "shower") >= 0 or Instr(0, txt, "drizzle") >= 0 then return "rain"
-    if data.current.windMph <> invalid and data.current.windMph >= 20 then return "wind"
-    if data.current.gustMph <> invalid and data.current.gustMph >= 25 then return "wind"
-    if Instr(0, txt, "wind") >= 0 or Instr(0, txt, "breezy") >= 0 or Instr(0, txt, "gust") >= 0 then return "wind"
-    if Instr(0, txt, "sunny") >= 0 then return "sun"
-    if Instr(0, txt, "clear") >= 0 or Instr(0, txt, "fair") >= 0 then return "clear"
-    if Instr(0, txt, "cloud") >= 0 or Instr(0, txt, "overcast") >= 0 or Instr(0, txt, "fog") >= 0 then return "cloud"
+    return weatherKindFor(data.current.forecast, data.current.windMph, data.current.gustMph)
+end function
+
+' Picks the sky animation from the NWS wording ("Clear", "Light Rain",
+' "Partly Cloudy", ...). Words are matched with weatherHas, see below.
+function weatherKindFor(forecast as String, windMph as Dynamic, gustMph as Dynamic) as String
+    txt = LCase(forecast)
+    if weatherHas(txt, "thunder") or weatherHas(txt, "storm") then return "thunder"
+    if weatherHas(txt, "rain") or weatherHas(txt, "shower") or weatherHas(txt, "drizzle") then return "rain"
+    if windMph <> invalid and windMph >= 20 then return "wind"
+    if gustMph <> invalid and gustMph >= 25 then return "wind"
+    if weatherHas(txt, "wind") or weatherHas(txt, "breezy") or weatherHas(txt, "gust") then return "wind"
+    if weatherHas(txt, "sunny") then return "sun"
+    if weatherHas(txt, "clear") or weatherHas(txt, "fair") then return "clear"
     return "cloud"
+end function
+
+' True when word appears in txt. Uses the string method, which returns -1 when
+' missing. (The global Instr() returns 0 when missing, so the old ">= 0" test was
+' always true and every forecast, even "Clear", drew a thunderstorm with rain.)
+function weatherHas(txt as String, word as String) as Boolean
+    return txt.Instr(word) >= 0
 end function
 
 sub drawHubWeatherSummary(root as Object)
