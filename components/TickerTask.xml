@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="TickerTask" extends="Task">
+    <interface>
+        <field id="serviceUrl" type="string" />
+        <field id="pairCode" type="string" />
+        <field id="deviceKey" type="string" />
+        <field id="payload" type="assocarray" alwaysNotify="true" />
+        <field id="error" type="string" alwaysNotify="true" />
+    </interface>
+    <script type="text/brightscript" uri="pkg:/components/TickerTask.brs" />
+</component>

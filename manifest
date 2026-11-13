@@ -1,0 +1,10 @@
+title=Our House Plan
+subtitle=The family house system
+major_version=76
+minor_version=3
+build_version=00055
+calendar_service_url=https://our-house-calendar-584264629555.us-east1.run.app
+mm_icon_focus_hd=pkg:/images/icon_focus_hd.png
+mm_icon_focus_sd=pkg:/images/icon_focus_sd.png
+splash_screen_hd=pkg:/images/splash_hd.jpg
+ui_resolutions=fhd

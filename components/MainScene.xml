@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="MainScene" extends="Scene">
+    <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
+    <script type="text/brightscript" uri="pkg:/components/Shop.brs" />
+    <script type="text/brightscript" uri="pkg:/components/Calendar.brs" />
+    <script type="text/brightscript" uri="pkg:/components/Weather.brs" />
+    <script type="text/brightscript" uri="pkg:/components/Family.brs" />
+    <script type="text/brightscript" uri="pkg:/components/Music.brs" />
+    <script type="text/brightscript" uri="pkg:/components/Seasons.brs" />
+    <script type="text/brightscript" uri="pkg:/components/Tickers.brs" />
+    <children>
+        <Rectangle id="bg" width="1920" height="1080" color="0x0B1020FF" />
+        <Group id="screenRoot" />
+        <Group id="menuBar" />
+        <Audio id="music" />
+        <Audio id="alarm" />
+        <Video id="screenSaverGuard" width="1" height="1" visible="false" disableScreenSaver="true" />
+        <Timer id="tick" duration="1" repeat="true" />
+        <Timer id="tickerTick" duration="0.04" repeat="true" />
+        <CalendarTask id="calendarTask" />
+        <WeatherTask id="weatherTask" />
+        <TickerTask id="tickerTask" />
+        <Rectangle id="flash" width="1920" height="1080" color="0xFFFFFFFF" opacity="0" />
+    </children>
+</component>
