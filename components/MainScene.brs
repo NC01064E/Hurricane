@@ -66,21 +66,7 @@ sub init()
     m.lastBackupSec = 0
     m.saveFailed = false
     m.backupSkipped = false
-    m.menuDefs = [
-        { label: "Today", key: "hub" },
-        { label: "Calendar", key: "calendar" },
-        { label: "Meals", key: "family" },
-        { label: "Music", key: "music" },
-        { label: "Game", key: "game" },
-        { label: "Reset", key: "reset" },
-        { label: "Chores", key: "chores" },
-        { label: "Crew", key: "crew" },
-        { label: "Rhythm", key: "rhythm" },
-        { label: "One Surface", key: "surface" },
-        { label: "Avatar", key: "avatar" },
-        { label: "Shop", key: "shop" },
-        { label: "Admin", key: "admin" }
-    ]
+    initMenu()
     m.timers = {
         zone: { total: 1200, left: 1200, running: false },
         family: { total: 600, left: 600, running: false },
@@ -715,42 +701,12 @@ end sub
 
 ' ---------- menu ----------
 
-sub buildMenu()
-    while m.menuBar.getChildCount() > 0
-        m.menuBar.removeChildIndex(0)
-    end while
-    mkRect(m.menuBar, 0, 0, 1920, 62, "0x0E1533FF")
-    m.menuNodes = []
-    x = 30
-    for i = 0 to m.menuDefs.count() - 1
-        d = m.menuDefs[i]
-        w = 88
-        if d.label = "One Surface" then w = 125
-        if d.label = "Calendar" then w = 100
-        bgc = "0x00000000"
-        tc = m.C.dim
-        if m.screen = d.key then bgc = "0x1D2A55FF" : tc = m.C.text
-        if m.area = "menu" and m.menuIdx = i then bgc = m.C.accent : tc = m.C.text
-        r = mkRect(m.menuBar, x, 8, w, 46, bgc)
-        l = mkLabel(m.menuBar, d.label, x, 18, 22, tc)
-        l.width = w
-        l.horizAlign = "center"
-        m.menuNodes.push(r)
-        x = x + w + 10
-    end for
-    statusPrefix = "VIEWER"
-    statusColor = m.C.dim
-    if m.admin then statusPrefix = "ADMIN" : statusColor = m.C.gold
-    mkLabelW(m.menuBar, statusPrefix + " · " + musicModeName(m.state.musicMode), 1420, 20, 455, 20, statusColor, "right")
-end sub
 
 ' ---------- screens ----------
 
 sub showScreen(key as String)
     m.screen = key
-    for i = 0 to m.menuDefs.count() - 1
-        if m.menuDefs[i].key = key then m.menuIdx = i
-    end for
+    syncMenuToScreen(key)
     rebuildScreen()
 end sub
 
