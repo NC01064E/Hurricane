@@ -7,6 +7,7 @@ sub setupWeather()
     m.weatherRunning = false
     m.weatherStatus = ""
     m.weatherLastError = ""
+    m.weatherPointProps = invalid
 end sub
 
 sub startWeatherSync(force as Boolean)
@@ -20,6 +21,7 @@ sub startWeatherSync(force as Boolean)
     m.weatherTask.latitude = "26.7191"
     m.weatherTask.longitude = "-80.1245"
     m.weatherTask.zipCode = "33417"
+    if m.weatherPointProps <> invalid then m.weatherTask.pointProps = m.weatherPointProps
     m.weatherTask.control = "STOP"
     m.weatherTask.control = "RUN"
 end sub
@@ -28,6 +30,11 @@ sub onWeatherPayload()
     data = m.weatherTask.payload
     m.weatherRunning = false
     if data = invalid then return
+    ' Keep the NWS grid lookup in memory only; the saved weather cache stays small.
+    if data.pointProps <> invalid then
+        m.weatherPointProps = data.pointProps
+        data.delete("pointProps")
+    end if
     m.state.weather.cache = data
     m.state.weather.lastSync = CreateObject("roDateTime").AsSeconds()
     m.weatherStatus = "READY"

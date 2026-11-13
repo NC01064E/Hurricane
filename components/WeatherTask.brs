@@ -9,7 +9,7 @@ function weatherJson(url as String) as Object
     xfer.SetCertificatesFile("common:/certs/ca-bundle.crt")
     xfer.SetUrl(url)
     xfer.AddHeader("Accept", "application/geo+json, application/json")
-    xfer.AddHeader("User-Agent", "OurHouseFamilyHub/58 (personal Roku weather display)")
+    xfer.AddHeader("User-Agent", "OurHouseFamilyHub/" + CreateObject("roAppInfo").GetVersion() + " (personal Roku weather display)")
     if not xfer.AsyncGetToString() then return invalid
     response = wait(15000, port)
     if response = invalid or type(response) <> "roUrlEvent" then
@@ -19,6 +19,20 @@ function weatherJson(url as String) as Object
     code = response.GetResponseCode()
     if code < 200 or code >= 300 then return invalid
     return ParseJSON(response.GetString())
+end function
+
+' The /points lookup (grid forecast URLs, station list, city) only changes if
+' the location does, so the scene keeps the result and passes it back in.
+function fetchPointProps(lat as String, lon as String) as Dynamic
+    point = weatherJson("https://api.weather.gov/points/" + lat + "," + lon)
+    if point = invalid or point.properties = invalid then return invalid
+    p = point.properties
+    return {
+        forecast: p.forecast,
+        forecastHourly: p.forecastHourly,
+        observationStations: p.observationStations,
+        relativeLocation: p.relativeLocation
+    }
 end function
 
 function chanceValue(period as Object) as Integer
@@ -35,19 +49,36 @@ sub fetchWeather()
         m.top.error = "LOCATION"
         return
     end if
-    point = weatherJson("https://api.weather.gov/points/" + lat + "," + lon)
-    if point = invalid or point.properties = invalid then
+    point = m.top.pointProps
+    usedCachedPoint = true
+    if point = invalid or point.forecast = invalid or point.forecastHourly = invalid then
+        usedCachedPoint = false
+        point = fetchPointProps(lat, lon)
+    end if
+    if point = invalid then
         m.top.error = "NWS POINT"
         return
     end if
-    forecastUrl = point.properties.forecast
-    hourlyUrl = point.properties.forecastHourly
-    if forecastUrl = invalid or hourlyUrl = invalid then
+    if point.forecast = invalid or point.forecastHourly = invalid then
         m.top.error = "NWS GRID"
         return
     end if
-    forecast = weatherJson(forecastUrl)
-    hourly = weatherJson(hourlyUrl)
+    forecast = weatherJson(point.forecast)
+    hourly = weatherJson(point.forecastHourly)
+    if usedCachedPoint and (forecast = invalid or forecast.properties = invalid or forecast.properties.periods = invalid) then
+        ' The saved grid URLs may have gone stale: look the point up once more and retry.
+        point = fetchPointProps(lat, lon)
+        if point = invalid then
+            m.top.error = "NWS POINT"
+            return
+        end if
+        if point.forecast = invalid or point.forecastHourly = invalid then
+            m.top.error = "NWS GRID"
+            return
+        end if
+        forecast = weatherJson(point.forecast)
+        hourly = weatherJson(point.forecastHourly)
+    end if
     if forecast = invalid or forecast.properties = invalid or forecast.properties.periods = invalid then
         m.top.error = "NWS FORECAST"
         return
@@ -71,7 +102,7 @@ sub fetchWeather()
     currentObservedAt = ""
     actualObservation = false
 
-    stationsUrl = point.properties.observationStations
+    stationsUrl = point.observationStations
     if stationsUrl <> invalid and stationsUrl <> "" then
         stations = weatherJson(stationsUrl)
         if stations <> invalid and stations.features <> invalid and stations.features.count() > 0 then
@@ -120,13 +151,14 @@ sub fetchWeather()
     end if
 
     locationName = "West Palm Beach"
-    if point.properties.relativeLocation <> invalid and point.properties.relativeLocation.properties <> invalid then
-        city = point.properties.relativeLocation.properties.city
-        state = point.properties.relativeLocation.properties.state
+    if point.relativeLocation <> invalid and point.relativeLocation.properties <> invalid then
+        city = point.relativeLocation.properties.city
+        state = point.relativeLocation.properties.state
         if city <> invalid and city <> "" then locationName = city
         if state <> invalid and state <> "" then locationName = locationName + ", " + state
     end if
     m.top.payload = {
+        pointProps: point,
         zipCode: m.top.zipCode,
         location: locationName,
         fetchedAt: CreateObject("roDateTime").AsSeconds(),

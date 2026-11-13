@@ -4,6 +4,7 @@
         <field id="latitude" type="string" />
         <field id="longitude" type="string" />
         <field id="zipCode" type="string" />
+        <field id="pointProps" type="assocarray" />
         <field id="payload" type="assocarray" alwaysNotify="true" />
         <field id="error" type="string" alwaysNotify="true" />
     </interface>
