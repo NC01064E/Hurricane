@@ -1,0 +1,47 @@
+phase,item,qty_in_plan,qty_corrected,unit_price,plan_extended,corrected_extended,delta,note
+1,2x4x8 #2 SYP stud,30,41,3.25,97.5,133.25,35.75,cut list packs 35 boards + 3 soffit + 3 defects
+1,PT 2x4x12,2,2,6.96,13.92,13.92,0.0,out of stock at E Fort Lauderdale; check WPB/delivery
+1,2x6x8 (header pair),4,2,9.68,38.72,19.36,-19.36,"meeting stiles are now doubled 2x4, so only the header pair needs 2x6"
+1,Plytanium 15/32 BC plywood 4x8,1,1,44.38,44.38,44.38,0.0,"header spacer, soffit hatch"
+1,USG Mold Tough 1/2 in 4x8 (garage face),5,5,24.88,124.4,124.4,0.0,paper-faced per sources; DECISION: glass-mat board (price not checked) if you keep the plan's 'no paper face' rule
+1,USG UltraLight 1/2 in 4x8 (room face),5,6,13.98,69.9,83.88,13.98,+1 sheet for soffit box / hatch backing
+1,CertainTeed R-13 15in x 32ft roll,4,4,27.97,111.88,111.88,0.0,
+1,"NRP security ball-bearing hinges 4.5 in, set of 3",2,3,18.48,36.96,55.44,18.48,4 hinges per leaf (8) instead of 3 because leaf is ~135-160 lb; verify load rating on spec sheet
+1,Prime-Line jimmy-proof rim deadbolt U 9970,1,1,26.87,26.87,26.87,0.0,
+1,Everbilt 4 in spring gate caster,2,2,29.67,59.34,59.34,0.0,
+1,Everbilt 6 in barrel bolt,4,4,11.47,45.88,45.88,0.0,4th by delivery
+1,Owens Corning sill gasket 5.5in x 50ft,1,1,11.64,11.64,11.64,0.0,
+1,Frost King EPDM tape 3/8 in x 17 ft,2,2,5.54,11.08,11.08,0.0,"~34 ft; need ~28 ft (jambs+header ~21 ft, astragal ~7 ft)"
+1,"Tapcon 3/16 x 3-1/4 in, 75 pc",1,1,20.97,20.97,20.97,0.0,~12 anchors needed; spare covers threshold bar
+1,"Titebond acoustic sealant, 12-pack case",1,1,106.48,106.48,106.48,0.0,only sold as case; pro-rata for 3 tubes is $26.62 - buy loose tubes elsewhere to save ~$80
+1,3M Fire Block sealant,1,1,8.48,8.48,8.48,0.0,
+2,UltraLight 1/2 in 4x8 (ceiling),8,8,13.98,111.84,111.84,0.0,check joist/truss spacing: 24 in OC needs 5/8 in or sag-resistant 1/2 in
+2,CertainTeed R-30 24x48 batts (88 sf/pack),3,3,129.0,387.0,387.0,0.0,264 sf for 228 sf
+2,Joint compound 4.5 gal,1,1,23.9,23.9,23.9,0.0,
+2,Paper tape,1,1,2.98,2.98,2.98,0.0,ceiling only; use mesh tape on the mold-resistant garage face
+2,Drywall screws 1 lb,1,1,5.97,5.97,5.97,0.0,covers ceiling only - see added fasteners
+2,Behr ceiling paint + primer 1 gal,1,1,33.98,33.98,33.98,0.0,1 gal ~350-400 sf/coat; 228 sf ceiling x 2 coats needs ~1.3 gal
+2,"Lithonia CPX 2x4 switchable CCT panels, 2-pack",2,2,101.24,202.48,202.48,0.0,"4 panels = 18,768 lm (82 lm/sf); 3 panels = 14,076 lm (62 lm/sf) already meets the plan's 50 lm/sf target"
+2,eLEDing 2x4 surface-mount frames,4,4,42.99,171.96,171.96,0.0,unverified; ~$107 4-pack alternative
+2,Lutron Caseta dimmers,2,2,64.95,129.9,129.9,0.0,CPX panels are 0-10V dimming - phase-cut Caseta dimmers will not dim them (see AUDIT)
+2,LINJO 42 in smart DC flush fan,2,2,109.0,218.0,218.0,0.0,
+2,Commercial Electric fan brace box,2,2,11.38,22.76,22.76,0.0,
+3,G-Floor Levant 7.5x17 ft slate grey,2,2,229.99,459.98,459.98,0.0,one retailer search page showed $379.99/roll - re-verify before buying
+3,Rubber-Cal stall mat 4x6x3/4,4,4,89.81,359.24,359.24,0.0,premium; farm-supply mats ~half
+3,Defiant smart leak sensor,1,1,29.98,29.98,29.98,0.0,
+3,AcuRite hygrometer,1,1,12.98,12.98,12.98,0.0,
+3,Zerust VCI drawer liner,1,1,10.29,10.29,10.29,0.0,
+3,Electrical materials (breaker 7.26 + 50ft 12/2 73.00 + receptacles 19.10),1,1,99.36,99.36,99.36,0.0,"see added items: one breaker and 50 ft cover one circuit, not four"
+
+id,added/omitted item (ESTIMATE),low,high,note
+A1,Fasteners: 3in structural + 1-5/8in drywall (5 lb each) + 3/16 masonry bit (plan carried $10-15),55,85,plan's placeholder was far too small for ~11 sheets of wall board + framing
+A2,Mesh tape + setting-type compound for garage-face seams,15,30,
+A3,Primer + paint: second ceiling coat and garage face of partition (~760 sf total),50,90,
+A4,"2 in PVC raceway to attic: ~15 ft pipe, 2 long-sweep elbows, straps, pull string, firestop",30,60,"specified in plan, never priced"
+A5,Lutron Smart Hub (needed for Caseta app/voice control),80,100,requirement confirmed by web search; price is an estimate
+A6,0-10V dimming for CPX panels (swap dimmers or panels),0,120,decision item; could be cost-neutral
+A7,GFCI receptacles in place of 4 of the 10 standard receptacles (garage requires GFCI),65,65,~$18 ea less $1.91
+A8,Three more 20A breakers (plan has one),22,22,"treadmill, bench/TV, network/UPS"
+A9,Extra 12/2 cable (plan has 50 ft total; depends on panel distance),75,300,$1.46/ft at plan price
+A10,"Network enclosure + UPS + Cat6/keystones (decided in plan, never priced)",250,600,optional if you reuse existing gear
+A11,"Electrician labor, Phase 3 circuits (plan: $300-700 incl. $99 materials already counted)",200,600,"not in the $3,111 materials total"
