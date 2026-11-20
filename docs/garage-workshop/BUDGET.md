@@ -4,7 +4,7 @@
 
 ## 1. The plan's own arithmetic
 
-Every line re-added: Phase 1 **\$828.40**, Phase 2 **\$1,310.77**, Phase 3 **\$971.83**, total **\$3,111.00**. All match the plan's stated figures. The plan's Phase 4 and full-project sums also check out (3,111 + 1,398 + 350 = 4,859; 3,111 + 2,309 + 1,000 = 6,420).
+Every line re-added: Phase 1 **\$828.40**, Phase 2 **\$1,310.77**, Phase 3 **\$971.83**, total **\$3,111.00**. All match the plan's stated figures. The original plan's Phase 4 and full-project sums (which used 18K units) also check out (3,111 + 1,398 + 350 = 4,859; 3,111 + 2,309 + 1,000 = 6,420).
 
 ## 2. Corrections to quantities already on the list
 
@@ -43,14 +43,18 @@ A11 is labor, so no sales tax applies; A1-A10 are materials and are taxed at 7%.
 | 7% sales tax | \$266 | \$324 |
 | Electrician labor, Phase 3 (A11) | \$200 | \$600 |
 | **Phases 1-3 total** | **\$4,268** | **\$5,556** |
-| Phase 4 unit, Hessaire 18K (\$1,398 + tax) | \$1,496 | \$1,496 |
-| Phase 4 services (240V circuit, pad/cover, permit) | \$450 | \$1,400 |
-| **Full project, Hessaire** | **\$6,214** | **\$8,452** |
-| **Full project, MRCOOL** | **\$7,189** | **\$9,427** |
+| Phase 4 unit, Hessaire 12K 115V (\$799 + tax) | \$855 | \$855 |
+| Phase 4 services (115V circuit, pad/cover, permit) | \$350 | \$1,150 |
+| **Full project, Hessaire 12K** | **\$5,473** | **\$7,561** |
+| **Full project, MRCOOL 12K** | **\$6,965** | **\$9,054** |
 
 If you skip A10 (network gear you may already own), Phases 1-3 land at **\$4,000 - \$4,914**.
 
 The plan's headline of "\$4,860-\$5,510 with the Hessaire" omitted sales tax, the electrician labor for Phase 3, the permit, the unpriced network gear and raceway, GFCI/breakers/wire, and realistic fasteners and paint. The plan is not wrong arithmetic - it is an incomplete list.
+
+## 4a. Phase 4 changed from 18K to 12K
+
+The plan now sizes Phase 4 at **12K** (see `SIZING.md`). Unit prices, from search results for Home Depot listings and **not verified at checkout**: Hessaire 12K 115V (H12HP1A) about \$799 (a 208/230V model, H12HP2A, about \$870); MRCOOL DIY 5th Gen 12K 115V about \$2,194. The 18K units the plan priced were \$1,398 and \$2,309. Both 12K models are listed in 115V, so Phase 4 needs a **dedicated 115V 20A circuit** instead of a 240V one (confirm the nameplate MCA/MOCP before wiring); the electrician line is an estimate. A 230V variant exists for each if you prefer that.
 
 ## 5. Price flags
 

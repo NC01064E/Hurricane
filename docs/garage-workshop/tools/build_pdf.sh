@@ -18,6 +18,7 @@ CSS
  cat PLAN.md
  printf '\n<div class="pb"></div>\n\n# Schematics\n\n'
  for f in drawings/schematic-1-floor-plan.svg drawings/schematic-2-wall-elevation.svg drawings/schematic-3-leaf.svg; do printf '![](%s)\n\n' "$f"; done
+ printf '\n<div class="pb"></div>\n\n'; cat SIZING.md
  printf '\n<div class="pb"></div>\n\n'; cat CUTLIST.md
  printf '\n<div class="pb"></div>\n\n'; cat BUDGET.md
  printf '\n<div class="pb"></div>\n\n'; cat CHECKLIST.md

@@ -57,8 +57,8 @@ A = [
  ("A10","Network enclosure + UPS + Cat6/keystones (decided in plan, never priced)",250,600,"optional if you reuse existing gear"),
  ("A11","Electrician labor, Phase 3 circuits (plan: $300-700 incl. $99 materials already counted)",200,600,"not in the $3,111 materials total"),
 ]
-P4 = {"hessaire":1398.00,"mrcool":2309.00}
-P4_SVC = [("240V circuit + disconnect (electrician)",250,750),("pad / cover / misc",100,250),("permit (treat as expected, not optional)",100,400)]
+P4 = {"hessaire":799.00,"mrcool":2193.87}   # 12K 115V units; search-snippet prices, NOT verified at checkout
+P4_SVC = [("dedicated 115V 20A circuit + disconnect (electrician; est. - the plan's $250-750 was for 240V)",150,500),("pad / cover / misc",100,250),("permit (treat as expected, not optional)",100,400)]
 
 def main():
     rows=[]; tot_plan={1:0,2:0,3:0}; tot_now={1:0,2:0,3:0}

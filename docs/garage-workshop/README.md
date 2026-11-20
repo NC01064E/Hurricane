@@ -9,10 +9,11 @@ Documentation for converting the back 19 x 12 ft of the garage into a conditione
 | `PLAN.md` | the corrected plan (changes marked) |
 | `AUDIT.md` | every finding, what was verified, and sources |
 | `CUTLIST.md` | formulas, framing layout, cut list, lumber and sheet goods, hardware |
+| `SIZING.md` | hand load estimate behind the 12K mini-split choice |
 | `BUDGET.md`, `budget.csv` | the plan's prices re-added, corrected and completed |
 | `CHECKLIST.md` | phase-by-phase checklist with gates |
 | `drawings/` | the three schematics, redrawn from the model |
 | `garage-workshop-plan-corrected.pdf` | all of the above in one document |
-| `tools/` | `model.py`, `budget.py`, `drawings.py`, `build_docs.py`, `build_pdf.sh` - regenerate everything |
+| `tools/` | `model.py`, `sizing.py`, `budget.py`, `drawings.py`, `build_docs.py`, `build_pdf.sh` - regenerate everything |
 
 To regenerate after measuring the wall height: edit `H` in `tools/model.py`, then `python3 tools/build_docs.py` and `python3 tools/drawings.py`.

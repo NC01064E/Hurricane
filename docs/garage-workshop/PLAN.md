@@ -37,13 +37,13 @@ Move the workbench and tool cabinet out of the bedroom and into the garage, and 
 - **Network enclosure:** wall-mounted, right wall at the back corner, mounted high above fitting spray lines and out of the T&P discharge path, drip loops on every cable, UPS on a dedicated 20A. A 2" PVC raceway from the top of the enclosure straight to the attic with long-sweep elbows, pull string left in, penetration firestopped. No active gear in the attic.
 
 ## Electrical (while the ceiling is open)
-Dedicated 20A treadmill circuit; bench/shop receptacles (GFCI); TV wall; UPS/network 20A; 240V mini-split circuit and disconnect. **[CHANGED: four circuits, not one - see BUDGET.]**
+Dedicated 20A treadmill circuit; bench/shop receptacles (GFCI); TV wall; UPS/network 20A; a dedicated mini-split circuit and disconnect (115V 20A for the 12K 115V models, 240V if you choose a 230V model). **[CHANGED: four circuits, not one - see BUDGET.]**
 
 ## Flooring
 G-Floor Levant roll-out vinyl over the whole conditioned room, plus a stall-mat layer in the lifting zone and under the workbench. Do the slab moisture test first. **[CHANGED: two 7.5 x 17 ft rolls need a cross seam and an end filler; see AUDIT 6.]** The slab falls 1.5-3" across the room, so shim and level the treadmill, rack and bench.
 
 ## Air conditioning
-DIY pre-charged single-zone inverter mini-split, bought last (Phase 4). Head high on the back wall, aimed to circulate across the room, not onto the bench or steel. Condensate and line-set route decided before the ceiling goes up. **[CHANGED/decide: 18K is likely oversized for a 228 sf room; get a Manual J. See AUDIT 10.]** Do not oversize to 24K.
+DIY pre-charged single-zone inverter mini-split, bought last (Phase 4). Head high on the back wall, aimed to circulate across the room, not onto the bench or steel. Condensate and line-set route decided before the ceiling goes up. **[CHANGED: sized at 12K, not 18K.]** The hand load estimate in `SIZING.md` is about 6,000 BTU/h at idle and about 10,500 BTU/h with a workout in progress, so 12,000 BTU/h covers the peak (88% of rating) and a 12K inverter can run long and steady at idle, which dehumidifies. An 18K unit would cycle at idle, which is the short-cycling the plan warns against. Confirm with a Manual J or the installer before buying; revisit only if it comes in above ~11,500 BTU/h. Do not go to 9K or 24K. Candidates (prices from search results, not verified at checkout): Hessaire 12K 115V about \$799, MRCOOL DIY 5th Gen 12K 115V about \$2,194. Both are 115V, so Phase 4 needs a dedicated 20A 115V circuit; confirm the nameplate MCA/MOCP.
 
 ## Supporting measures
 Insulate and seal the overhead door as a buffer zone; hygrometer in the conditioned room; VCI bags/emitters and light oil for parts; sealed bins with desiccant as hurricane-outage backup; water-heater drain pan plus smart leak sensor; an insulation blanket on the 80 gal tank trims summer standby heat. **[Decide: the exterior block walls and exterior door are the largest moisture paths; see AUDIT 11.]**
@@ -57,9 +57,9 @@ Florida winter is the free-AC window: build November-February and let the mini-s
 | 1 | Partition + hinged section | \$877 | workbench and tool cabinet move out of the bedroom here; steel parts bridge on sealed bins + desiccant + VCI |
 | 2 | Ceiling, R-30, lighting, fans, raceway | \$1,311 + additions | room feels finished; fans carry comfort through spring |
 | 3 | Flooring, circuits, small stuff | \$972 + additions | swap 3 and 4 if the electrician is available |
-| 4 | Mini-split | \$1,398 or \$2,309 + services | decided in spring; permit likely expected |
+| 4 | Mini-split, **12K** | \$799 or \$2,194 + services (est. \$350-1,150) | decided in spring; permit likely expected |
 
-Totals are in `BUDGET.md`: Phases 1-3 about **\$4.3-5.6k**, full project about **\$6.2-8.5k** (Hessaire) or **\$7.2-9.4k** (MRCOOL), against the original \$4.9-6.4k.
+Totals are in `BUDGET.md`: Phases 1-3 about **\$4.3-5.6k**, full project about **\$5.5-7.6k** (Hessaire 12K) or **\$7.0-9.1k** (MRCOOL 12K), against the original \$4.9-6.4k (which priced 18K units).
 
 ## Build order in one line
 Measure the opener, door and ceiling; frame the fixed wall and the hinged leaves; seal everything; then ceiling/lighting/fans, flooring, and the mini-split last.

@@ -8,12 +8,12 @@ Work top to bottom. Items in **bold** are gates: do not buy or cut past them unt
 - [ ] **Measure the overhead door height and how far the open panels and track extend; confirm the partition at 8'-0" is behind them.**
 - [ ] **Confirm joist/truss spacing and direction** (ceiling board type) and what the existing ceiling is (fire separation to the attic).
 - [ ] Slab moisture test (needed before G-Floor).
-- [ ] Panel: spare capacity and distance to the garage for four 20A circuits plus 240V.
+- [ ] Panel: spare capacity and distance to the garage for four 20A circuits plus the mini-split's dedicated circuit (115V 20A for the 12K 115V models).
 - [ ] Identify the exterior wall construction and decide how to treat the two exterior walls and the exterior door (AUDIT 11).
 - [ ] **Read the hinge load rating on the spec sheet; confirm 4 hinges per leaf (or heavier hinges).**
 - [ ] Confirm the house door is a 1-3/8" solid/honeycomb-steel or 20-minute door with a self-closing device (verify against the current Florida code edition).
-- [ ] **Call the building department: permits and licensing for the 240V circuit, mini-split and any panel work.**
-- [ ] **Decide:** glass-mat vs paper-faced board; 12K vs 18K (Manual J); CPX panels + 0-10V dimmers vs phase-dimmable panels (and the Caseta hub); threshold bar in or out; jackshaft opener vs soffit.
+- [ ] **Call the building department: permits and licensing for the mini-split, its dedicated circuit and any panel work.**
+- [ ] **Decide:** glass-mat vs paper-faced board; 12K mini-split confirmed by Manual J or installer (`SIZING.md`: ~10,500 BTU/h peak); CPX panels + 0-10V dimmers vs phase-dimmable panels (and the Caseta hub); threshold bar in or out; jackshaft opener vs soffit.
 - [ ] Re-verify prices, especially G-Floor (\$229.99 vs \$379.99 seen) and the hinge set.
 - [ ] Clear and organize the garage; set up the bin + desiccant + VCI bridge for the steel parts.
 
@@ -44,14 +44,14 @@ Work top to bottom. Items in **bold** are gates: do not buy or cut past them unt
 - [ ] Verify the soffit clearance over the treadmill.
 
 ## Phase 3 - flooring, circuits, small stuff
-- [ ] Electrician: treadmill 20A, bench/TV GFCI, network/UPS 20A (and the 240V mini-split circuit if done now).
+- [ ] Electrician: treadmill 20A, bench/TV GFCI, network/UPS 20A (and the mini-split's dedicated circuit if done now).
 - [ ] Network enclosure on the right wall, raceway runs, Cat6 from the enclosure to the bench end and the TV.
 - [ ] Lay out G-Floor: two rolls with a cross seam and the end filler from the offcut; stall mats in the lifting zone and under the workbench; shim and level equipment on the sloped slab.
 - [ ] Water-heater drain pan and smart leak sensor; VCI liners, desiccant.
 
 ## Phase 4 - mini-split (spring)
-- [ ] Manual J or installer sizing confirms the unit size.
-- [ ] Permit as required; 240V circuit and disconnect; pad and cover.
+- [ ] Manual J or installer sizing confirms 12K (revisit only if the load exceeds ~11,500 BTU/h).
+- [ ] Permit as required; dedicated 20A circuit (115V for the 12K 115V models; confirm nameplate MCA/MOCP) and disconnect; pad and cover.
 - [ ] Head high on the back wall, aimed across the room; condensate and line-set route.
 - [ ] Commission; confirm RH at or below 50% with the hygrometer; no condensation on the steel.
 
